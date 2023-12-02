@@ -1,28 +1,42 @@
 const express = require("express");
+const { Router } = express;
 const app = express();
+const routerUsuarios = Router();
 const port = process.env.PORT || 8080;
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+app.use('/public', express.static(__dirname + '/public'));
+
+app.listen(port, ()=>{
+    console.log(`http://localhost:${port}`);
+});
+
+app.use("/api/usuarios", routerUsuarios)
 
 let usuarios = [{id: 100, nombre: 'monica', edad: 20},
                 {id: 101, nombre: 'juan', edad: 20},
                 {id: 102, nombre: 'nacho', edad: 20},
                 {id: 103, nombre: 'nicolas', edad: 20}];
 
+app.get('/', (req, res)=>{
+    res.send('<h1>HOLA NOSOTROS</h1>')
+})
 
-app.get("/api/usuarios", (req, res)=>{
+
+routerUsuarios.get("/", (req, res)=>{
     const { query } = req;
 
-    if(query.nombre){
+    if(query?.nombre){
         const usuariosFiltrado = usuarios.filter(
             (usuario) => usuario.nombre == query.nombre);
             return res.json(usuariosFiltrado)
     }
     res.json(usuarios);
 })
-
-app.get("/api/usuarios/:id", (req, res)=>{
+routerUsuarios.get("/:id", (req, res)=>{
     const { id } = req.params;
 
     const usuarioEncontrado = usuarios.find((usuario) => usuario.id == id);
@@ -33,13 +47,13 @@ app.get("/api/usuarios/:id", (req, res)=>{
     }
 });
 
-app.post('/api/usuarios',(req, res)=>{
+routerUsuarios.post('/',(req, res)=>{
     const { body } = req;
     usuarios.push(body);
     res.json('ok');
 })
 
-app.put('/api/usuarios/:id', (req, res)=>{
+routerUsuarios.put('/:id', (req, res)=>{
     const id = req.params.id;
     const body = req.body;
 
@@ -52,13 +66,8 @@ app.put('/api/usuarios/:id', (req, res)=>{
     }
 });
 
-app.delete('/api/usuarios/:id', (req, res)=> {
+routerUsuarios.delete('/:id', (req, res)=> {
     const { id } = req.params;
     usuarios = usuarios.filter((usuario) => usuario.id != id);
     res.json({succes: true, usuarios: usuarios.length});
 })
-
-
-app.listen(port, ()=>{
-    console.log(`http://localhost:${port}`);
-});

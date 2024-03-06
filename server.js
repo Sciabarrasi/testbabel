@@ -1,5 +1,6 @@
 const express = require("express");
 const { Router } = express;
+const multer = require('multer');
 const app = express();
 const routerUsuarios = Router();
 const port = process.env.PORT || 8080;
@@ -14,7 +15,11 @@ app.listen(port, ()=>{
     console.log(`http://localhost:${port}`);
 });
 
-app.use("/api/usuarios", routerUsuarios)
+app.use("/api/usuarios", routerUsuarios);
+
+app.use((req, res, next)=>{
+    next();
+})
 
 let usuarios = [{id: 100, nombre: 'monica', edad: 20},
                 {id: 101, nombre: 'juan', edad: 20},
@@ -22,11 +27,52 @@ let usuarios = [{id: 100, nombre: 'monica', edad: 20},
                 {id: 103, nombre: 'nicolas', edad: 20}];
 
 app.get('/', (req, res)=>{
-    res.send('<h1>HOLA NOSOTROS</h1>')
-})
+    res.send('<h1>HOLA NOSOTROS LA 43495</h1>')
+});
 
+app.get('/formulario', (req, res)=>{
+    res.sendFile(__dirname + "/index.html");
+});
 
-routerUsuarios.get("/", (req, res)=>{
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads');
+    },
+    filename: (req, file, cb) => {
+        cb(
+            null,
+            file.fieldname +
+            '-' +
+            Date.now() +
+            '-' +
+            file.originalname.split('.').pop()
+        );
+    },
+});
+const upload = multer ({ storage: storage });
+
+app.post('/uploadfile', upload.single('myFile'), (req, res)=>{
+    const file = req.file;
+    if(!file){
+        res.send({ error: true });
+    }else{
+        //res.send(file);
+        res.send({succes: true});
+    }
+});
+
+app.get('/en/un/lugar/muy/puntual',
+(req, res, next)=> {
+    console.log('estan /en/un/lugar/muy/puntual');
+    next() 
+},
+    (req, res)=>{
+    res.send('<h1>ASHEEEE</h1>')
+});
+
+//routerUsuarios.use();
+
+routerUsuarios.get("/",(req, res)=>{
     const { query } = req;
 
     if(query?.nombre){
